@@ -53,14 +53,20 @@ html, body, [class*="css"] {
     color: var(--text) !important;
 }
 #MainMenu, footer, header { visibility: hidden; }
-.block-container { padding: 0 !important; max-width: 100% !important; }
+.block-container {
+    padding: 0 3rem !important;
+    max-width: 100% !important;
+}
+
+/* ── Content centering wrapper ── */
+.main-wrap > div,
+.stColumn > div { width: 100%; }
 
 /* ── Top bar ── */
 .topbar {
     background: linear-gradient(180deg, var(--surface) 0%, rgba(13,24,16,0.95) 100%);
     border-bottom: 1px solid var(--border);
-    padding: 0.85rem 3rem;
-    display: flex;
+    padding: 0.85rem 3rem;    display: flex;
     align-items: center;
     justify-content: space-between;
     backdrop-filter: blur(12px);
@@ -109,7 +115,30 @@ html, body, [class*="css"] {
 }
 
 /* ── Main wrap ── */
-.main-wrap { max-width: 1280px; margin: 0 auto; padding: 3rem 2.5rem 5rem; }
+.main-wrap {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 3rem 0 5rem;
+    box-sizing: border-box;
+}
+[data-testid="stImage"] img {
+    max-height: 320px !important;
+    width: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    border-radius: 10px;
+    display: block !important;
+    margin: 0 auto !important;
+}
+[data-testid="stImage"],
+[data-testid="stImage"] > div,
+[data-testid="stImage"] > div > div {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
 
 /* ── Hero ── */
 .hero { text-align: center; padding: 2rem 0 3rem; position: relative; }
@@ -157,16 +186,21 @@ html, body, [class*="css"] {
     color: var(--text-muted);
     font-weight: 300;
     max-width: 420px;
-    margin: 0 auto;
+    margin: 1.2rem auto 0;
     line-height: 1.8;
+    text-align: center;
+    display: block;
+    width: 100%;
 }
+
+.hero p, .hero-sub { text-align: center !important; margin-left: auto !important; margin-right: auto !important; }
 
 /* ── Upload zone ── */
 .upload-section {
     background: var(--surface);
     border: 1.5px dashed var(--border-light);
     border-radius: 18px;
-    padding: 0.5rem 1.5rem 1.5rem;
+    padding: 0.3rem 1.5rem 0.3rem;
     transition: all 0.25s ease;
     position: relative;
     overflow: hidden;
@@ -186,7 +220,7 @@ html, body, [class*="css"] {
 [data-testid="stFileUploaderDropzone"] {
     background: transparent !important;
     border: none !important;
-    padding: 1rem 0 !important;
+    padding: 0.3rem 0 !important;
 }
 [data-testid="stFileUploaderDropzone"] > div > div { color: var(--text-muted) !important; }
 [data-testid="stFileUploaderDropzone"] svg { stroke: var(--text-dim) !important; }
@@ -566,7 +600,7 @@ if model is None:
     st.stop()
 
 # ── Top bar ───────────────────────────────────────────────────────────────────
-acc_html = f'<span class="pill pill-green">🎯 {saved_acc:.1f}% accuracy</span>' if saved_acc else ""
+acc_html = f'<span class="pill pill-green"> {saved_acc:.1f}% accuracy</span>' if saved_acc else ""
 st.markdown(f"""
 <div class="topbar">
     <div class="topbar-logo">
@@ -586,7 +620,7 @@ st.markdown("""
 <div class="hero">
     <div class="hero-eyebrow">AI-Powered Quality Detection</div>
     <h1 class="hero-title">Freshness <em>Inspector</em></h1>
-    <p class="hero-sub">Upload fruit images and the AI instantly classifies each one as fresh or spoiled — no refresh needed.</p>
+    <p class="hero-sub" style="text-align:center;margin-left:auto;margin-right:auto;">Upload fruit images and the AI instantly classifies each one as fresh or spoiled.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -606,23 +640,26 @@ st.markdown('<hr class="divider">', unsafe_allow_html=True)
 if not uploaded_files:
     st.markdown("""
     <div class="empty">
-        <span class="empty-icons">🍓 🍌 🥭</span>
         <div class="empty-title">No images uploaded yet</div>
         <div class="empty-sub">Drag fruit images into the box above — multiple files supported</div>
     </div>""", unsafe_allow_html=True)
 else:
     for uploaded in uploaded_files:
         image = Image.open(io.BytesIO(uploaded.read())).convert("RGB")
-        col_img, col_res = st.columns([5, 6], gap="large")
+        col_img, col_res = st.columns([4, 6], gap="large")
 
         with col_img:
             with st.spinner(f"Analysing {uploaded.name}…"):
                 top5, clean = predict_tta(model, image, CLASS_NAMES, DEVICE)
-            tab1, tab2 = st.tabs(["📷 Original", "🔬 Processed"])
+            tab1, tab2 = st.tabs(["Original", "Processed"])
             with tab1:
-                st.image(image, use_container_width=True)
+                col_l, col_c, col_r = st.columns([1, 4, 1])
+                with col_c:
+                    st.image(image, use_container_width=True)
             with tab2:
-                st.image(clean, use_container_width=True)
+                col_l, col_c, col_r = st.columns([1, 4, 1])
+                with col_c:
+                    st.image(clean, use_container_width=True)
             st.markdown(f'<div class="img-caption">📁 {uploaded.name}</div>', unsafe_allow_html=True)
 
         with col_res:
@@ -639,7 +676,7 @@ with st.sidebar:
         st.markdown(f"{emoji} &nbsp; {fruit}", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("### Tips for best results")
-    for tip in ["🔆 Good lighting, no harsh shadows","🎯 Single fruit, fills 70%+ of frame","⬜ Plain background works best","📐 Whole fruit, not cut or sliced","📷 In-focus, no motion blur"]:
+    for tip in ["Good lighting, no harsh shadows","Single fruit, fills 70%+ of frame","Plain background works best","Whole fruit, not cut or sliced","In-focus, no motion blur"]:
         st.markdown(f"<small>{tip}</small>", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("### Model info")
