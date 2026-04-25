@@ -1,3 +1,13 @@
+import gdown
+import os
+
+MODEL_PATH = "freshharvest_resnet50_final.pth"
+if not os.path.exists(MODEL_PATH):
+    gdown.download(
+        "https://drive.google.com/uc?id=1qH5oz18QIrriksDNUuX6ztPntfZ1eAdx",
+        MODEL_PATH,
+        quiet=False
+    )
 import streamlit as st
 import torch
 import torch.nn as nn
